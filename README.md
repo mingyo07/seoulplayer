@@ -106,6 +106,29 @@ git push origin feature/기능이름
 
 자세한 규칙은 [docs/컨벤션.md](docs/컨벤션.md) 참고.
 
+## 📦 이미지·에셋이 안 보여요? → Git LFS 받기
+
+이 프로젝트의 **이미지·폰트·사운드는 Git LFS**로 관리됩니다. **LFS 없이 클론하면 이미지 대신 "포인터 텍스트 파일"만 받아져서**, Unity 씬이 텅 비어 보이거나 스프라이트가 안 뜹니다.
+
+**해결 (클론한 폴더 안에서):**
+```bash
+git lfs install
+git lfs pull
+```
+→ 그다음 **Unity 창을 클릭(포커스)** 하면 이미지가 다시 임포트되어 보입니다.
+
+**LFS 문제인지 확인:** 이미지 `.png` 하나를 메모장으로 열었을 때 아래처럼 **글자만** 나오면 = 아직 안 받아진 것 → 위 명령으로 해결.
+```
+version https://git-lfs.github.com/spec/v1
+oid sha256:...
+size ...
+```
+
+**제일 확실한 방법:** `git lfs install` 을 **먼저** 한 뒤 `git clone` 하면 처음부터 이미지까지 받아집니다.
+
+> 자동 LFS 대상: `.png .jpg .jpeg .psd .gif .tga .wav .mp3 .ogg .fbx .glb .gltf .obj .ttf .otf`
+> 팀원 **전원**이 최초 1회 `git lfs install` 필수!
+
 ## ⚠️ 협업 주의사항
 
 - **씬(.unity)·프리팹은 한 번에 한 사람만** 수정하세요 (충돌 방지).
