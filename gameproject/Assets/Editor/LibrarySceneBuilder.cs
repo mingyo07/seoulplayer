@@ -13,18 +13,19 @@ using UnityEngine.UI;
 // 진짜 에셋은 나중에 04_Sprites 의 스프라이트만 교체하면 된다.
 public static class LibrarySceneBuilder
 {
-    private const string SpriteDir = "Assets/04_Sprites/_Placeholder";
-    private const string DataDir = "Assets/09_Data/_Generated";
-    private const string PrefabPath = "Assets/03_Prefabs/BookButton.prefab";
-    private const string ScenePath = "Assets/01_Scenes/LibraryGame.unity";
+    private const string GameDir = "Assets/Games/별마당도서관";
+    private const string SpriteDir = GameDir + "/Sprites/_Placeholder";
+    private const string DataDir = GameDir + "/Data/_Generated";
+    private const string PrefabPath = GameDir + "/Prefabs/BookButton.prefab";
+    private const string ScenePath = GameDir + "/Scenes/LibraryGame.unity";
 
     [MenuItem("별마당도서관/플레이 가능한 씬 생성")]
     public static void Build()
     {
-        EnsureFolder("Assets/04_Sprites", "_Placeholder");
-        EnsureFolder("Assets/09_Data", "_Generated");
-        EnsureFolder("Assets", "03_Prefabs");
-        EnsureFolder("Assets", "01_Scenes");
+        EnsureFolderPath(SpriteDir);
+        EnsureFolderPath(DataDir);
+        EnsureFolderPath(GameDir + "/Prefabs");
+        EnsureFolderPath(GameDir + "/Scenes");
 
         // 1) 임시 스프라이트 생성
         Sprite playerSprite = MakeSprite("player", 48, 48, "#3f7bd6", "#274f8a");
@@ -362,6 +363,16 @@ public static class LibrarySceneBuilder
     {
         if (!AssetDatabase.IsValidFolder($"{parent}/{child}"))
             AssetDatabase.CreateFolder(parent, child);
+    }
+
+    // 중첩 경로 폴더를 한 단계씩 생성
+    private static void EnsureFolderPath(string folder)
+    {
+        if (AssetDatabase.IsValidFolder(folder)) return;
+        string parent = Path.GetDirectoryName(folder).Replace("\\", "/");
+        string name = Path.GetFileName(folder);
+        if (!AssetDatabase.IsValidFolder(parent)) EnsureFolderPath(parent);
+        AssetDatabase.CreateFolder(parent, name);
     }
 
     private static void AddSceneToBuildSettings(string path)

@@ -13,15 +13,16 @@ using UnityEngine.UI;
 // 임시 에셋(사육사/동물/우리/게이지)도 자동 생성해 연결한다. 진짜 에셋은 나중에 교체.
 public static class ParkSceneBuilder
 {
-    private const string SpriteDir = "Assets/04_Sprites/_ParkPlaceholder";
-    private const string ScenePath = "Assets/01_Scenes/ParkGame.unity";
-    private const string BgPath = "Assets/04_Sprites/park_bg.png";
+    private const string GameDir = "Assets/Games/서울어린이대공원";
+    private const string SpriteDir = GameDir + "/Sprites/_ParkPlaceholder";
+    private const string ScenePath = GameDir + "/Scenes/ParkGame.unity";
+    private const string BgPath = GameDir + "/Sprites/park_bg.png";
 
     [MenuItem("서울대공원/플레이 가능한 씬 생성")]
     public static void Build()
     {
-        EnsureFolder("Assets/04_Sprites", "_ParkPlaceholder");
-        EnsureFolder("Assets", "01_Scenes");
+        EnsureFolderPath(SpriteDir);
+        EnsureFolderPath(GameDir + "/Scenes");
 
         Sprite playerS = MakeSprite("keeper", 70, 130, "#3f7bd6", "#274f8a", SpriteAlignment.BottomCenter);
         // 록온 선택 링 + 충전 게이지 + 타이밍 바 (3배 해상도 @ PPU 300 → 월드 크기 동일, 선명하게)
@@ -102,7 +103,7 @@ public static class ParkSceneBuilder
         for (int i = 0; i < animals.Length; i++)
         {
             float x = Mathf.Lerp(leftEdge, rightEdge, (i + 0.5f) / animals.Length);
-            Sprite body = ImportSprite($"Assets/04_Sprites/Animals/{animals[i].file}.png", SpriteAlignment.BottomCenter, 650f, 2048);
+            Sprite body = ImportSprite($"{GameDir}/Sprites/Animals/{animals[i].file}.png", SpriteAlignment.BottomCenter, 650f, 2048);
             BuildAnimal(animals[i].name, new Vector3(x, playY, 0f), body, ringS, chargeTrackS, chargeFillS, trackS, zoneS, markerS, mashFillS, arrowS, leftEdge, rightEdge);
         }
 
@@ -703,6 +704,16 @@ public static class ParkSceneBuilder
     {
         if (!AssetDatabase.IsValidFolder($"{parent}/{child}"))
             AssetDatabase.CreateFolder(parent, child);
+    }
+
+    // 중첩 경로 폴더를 한 단계씩 생성 (예: Assets/Games/.../Sprites/_ParkPlaceholder)
+    private static void EnsureFolderPath(string folder)
+    {
+        if (AssetDatabase.IsValidFolder(folder)) return;
+        string parent = Path.GetDirectoryName(folder).Replace("\\", "/");
+        string name = Path.GetFileName(folder);
+        if (!AssetDatabase.IsValidFolder(parent)) EnsureFolderPath(parent);
+        AssetDatabase.CreateFolder(parent, name);
     }
 
     private static void AddSceneToBuildSettings(string path)
