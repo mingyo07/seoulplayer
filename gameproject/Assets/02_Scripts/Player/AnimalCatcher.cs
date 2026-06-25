@@ -40,7 +40,8 @@ public class AnimalCatcher : MonoBehaviour
         var gm = ParkGameManager.Instance;
         if (gm != null && !gm.IsPlaying) return;
 
-        Move();
+        // 록온/충전/타이밍 중에는 이동 불가(상호작용에 집중)
+        if (phase == Phase.Idle) Move();
         UpdateCatch();
     }
 

@@ -24,13 +24,13 @@ public static class ParkSceneBuilder
         EnsureFolder("Assets", "01_Scenes");
 
         Sprite playerS = MakeSprite("keeper", 70, 130, "#3f7bd6", "#274f8a", SpriteAlignment.BottomCenter);
-        // 록온 선택 링 + 충전 게이지 + 타이밍 바 (둥글고 크게)
-        Sprite ringS = MakeRing("sel_ring", 128, 12, "#ffce2e");
-        Sprite chargeTrackS = MakeRoundedFill("charge_track", 150, 24, "#222831", SpriteAlignment.Center);
-        Sprite chargeFillS = MakeRoundedFill("charge_fill", 150, 24, "#ffcf3f", SpriteAlignment.LeftCenter);
-        Sprite trackS = MakeRoundedFill("timing_track", 220, 34, "#222831", SpriteAlignment.Center);
-        Sprite zoneS = MakeRoundedFill("timing_zone", 48, 34, "#5fd06a", SpriteAlignment.Center);
-        Sprite markerS = MakeRoundedFill("timing_marker", 14, 50, "#ff5a5a", SpriteAlignment.Center);
+        // 록온 선택 링 + 충전 게이지 + 타이밍 바 (3배 해상도 @ PPU 300 → 월드 크기 동일, 선명하게)
+        Sprite ringS = MakeRing("sel_ring", 384, 36, "#ffce2e", 300f);
+        Sprite chargeTrackS = MakeRoundedFill("charge_track", 450, 72, "#222831", SpriteAlignment.Center, 300f);
+        Sprite chargeFillS = MakeRoundedFill("charge_fill", 450, 72, "#ffcf3f", SpriteAlignment.LeftCenter, 300f);
+        Sprite trackS = MakeRoundedFill("timing_track", 660, 102, "#222831", SpriteAlignment.Center, 300f);
+        Sprite zoneS = MakeRoundedFill("timing_zone", 144, 102, "#5fd06a", SpriteAlignment.Center, 300f);
+        Sprite markerS = MakeRoundedFill("timing_marker", 42, 150, "#ff5a5a", SpriteAlignment.Center, 300f);
 
         // 실제 동물 이미지 (Assets/04_Sprites/Animals/*.png)
         var animals = new (string name, string file)[]
@@ -361,7 +361,7 @@ public static class ParkSceneBuilder
     }
 
     // 둥근(알약) 채워진 월드 스프라이트 (게이지/바용). align으로 피벗 지정.
-    private static Sprite MakeRoundedFill(string name, int w, int h, string fillHex, SpriteAlignment align)
+    private static Sprite MakeRoundedFill(string name, int w, int h, string fillHex, SpriteAlignment align, float ppu)
     {
         string path = $"{SpriteDir}/{name}.png";
         ColorUtility.TryParseHtmlString(fillHex, out Color fill);
@@ -388,12 +388,12 @@ public static class ParkSceneBuilder
         tex.Apply();
         File.WriteAllBytes(path, tex.EncodeToPNG());
         Object.DestroyImmediate(tex);
-        ApplySpriteImport(path, align);
+        ApplySpriteImport(path, align, ppu);
         return AssetDatabase.LoadAssetAtPath<Sprite>(path);
     }
 
     // 링(도넛) 월드 스프라이트 (록온 표시용)
-    private static Sprite MakeRing(string name, int size, int thickness, string fillHex)
+    private static Sprite MakeRing(string name, int size, int thickness, string fillHex, float ppu)
     {
         string path = $"{SpriteDir}/{name}.png";
         ColorUtility.TryParseHtmlString(fillHex, out Color fill);
@@ -420,18 +420,18 @@ public static class ParkSceneBuilder
         tex.Apply();
         File.WriteAllBytes(path, tex.EncodeToPNG());
         Object.DestroyImmediate(tex);
-        ApplySpriteImport(path, SpriteAlignment.Center);
+        ApplySpriteImport(path, SpriteAlignment.Center, ppu);
         return AssetDatabase.LoadAssetAtPath<Sprite>(path);
     }
 
-    private static void ApplySpriteImport(string path, SpriteAlignment align)
+    private static void ApplySpriteImport(string path, SpriteAlignment align, float ppu)
     {
         AssetDatabase.ImportAsset(path, ImportAssetOptions.ForceUpdate);
         var imp = AssetImporter.GetAtPath(path) as TextureImporter;
         if (imp == null) return;
         imp.textureType = TextureImporterType.Sprite;
         imp.spriteImportMode = SpriteImportMode.Single;
-        imp.spritePixelsPerUnit = 100;
+        imp.spritePixelsPerUnit = ppu;
         imp.filterMode = FilterMode.Bilinear;
         imp.mipmapEnabled = false;
         imp.textureCompression = TextureImporterCompression.Uncompressed; // 압축 아티팩트 방지
