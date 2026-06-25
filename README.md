@@ -46,6 +46,11 @@ seoulplayer/
 ## 🚀 처음 시작하기 (Setup)
 
 ```bash
+# 0. Git LFS 설치 (최초 1회, 필수!) — 이미지·사운드·3D 모델 관리용
+#    안 하면 에셋이 깨진 포인터 파일로 보입니다.
+brew install git-lfs   # (Windows는 https://git-lfs.com 에서 설치)
+git lfs install
+
 # 1. 내 포크를 클론
 git clone https://github.com/<내아이디>/seoulplayer
 cd seoulplayer
@@ -55,6 +60,8 @@ git remote add upstream https://github.com/mingyo07/seoulplayer
 
 # 3. Unity Hub에서 gameproject 폴더 열기
 ```
+
+> 📦 **Git LFS 사용 중:** `.png .jpg .psd .wav .mp3 .fbx .glb .gltf .obj .ttf` 등은 자동으로 LFS로 관리됩니다. 팀원 전원이 위 `git lfs install`을 꼭 실행하세요.
 
 ## 🔄 협업 흐름 (Fork & PR)
 
