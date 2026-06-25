@@ -1,2 +1,39 @@
-# Auto detect text files and perform LF normalization
+# ============================================================
+#  서울플레이어 - Git 속성 설정 (Unity 협업용)
+# ============================================================
+
+# 기본: 텍스트 파일 자동 감지 + 줄바꿈 정규화
 * text=auto
+
+# ------------------------------------------------------------
+#  Unity 씬/프리팹/에셋 - 충돌 시 Unity YAML 병합 도구 사용
+#  (Project Settings > Editor > Asset Serialization = Force Text 필수)
+# ------------------------------------------------------------
+*.unity      merge=unityyamlmerge eol=lf
+*.prefab     merge=unityyamlmerge eol=lf
+*.asset      merge=unityyamlmerge eol=lf
+*.meta       merge=unityyamlmerge eol=lf
+*.controller merge=unityyamlmerge eol=lf
+*.anim       merge=unityyamlmerge eol=lf
+*.mat        merge=unityyamlmerge eol=lf
+
+# C# 스크립트는 항상 텍스트로
+*.cs         text diff=csharp
+
+# ------------------------------------------------------------
+#  Git LFS (큰 바이너리 관리)
+#  ※ 팀 전체가 합의하고 각자 'git lfs install' 실행한 뒤
+#    아래 주석(#)을 풀어서 사용하세요.
+#  ※ 이미 커밋된 파일 이전: git lfs migrate import --include="*.png,*.psd"
+# ------------------------------------------------------------
+# *.png  filter=lfs diff=lfs merge=lfs -text
+# *.jpg  filter=lfs diff=lfs merge=lfs -text
+# *.jpeg filter=lfs diff=lfs merge=lfs -text
+# *.psd  filter=lfs diff=lfs merge=lfs -text
+# *.gif  filter=lfs diff=lfs merge=lfs -text
+# *.wav  filter=lfs diff=lfs merge=lfs -text
+# *.mp3  filter=lfs diff=lfs merge=lfs -text
+# *.ogg  filter=lfs diff=lfs merge=lfs -text
+# *.fbx  filter=lfs diff=lfs merge=lfs -text
+# *.ttf  filter=lfs diff=lfs merge=lfs -text
+# *.otf  filter=lfs diff=lfs merge=lfs -text
