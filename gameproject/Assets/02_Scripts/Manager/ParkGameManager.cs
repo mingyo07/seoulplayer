@@ -48,6 +48,18 @@ public class ParkGameManager : MonoBehaviour
         ParkUIManager.Instance?.UpdateTimer(Elapsed);
     }
 
+    private int lastMini = -1;
+
+    // 같은 미니게임이 연속으로 안 나오게 다음 타입 선택
+    public int NextMiniGame(int typeCount)
+    {
+        if (typeCount <= 1) return 0;
+        int t;
+        do { t = Random.Range(0, typeCount); } while (t == lastMini);
+        lastMini = t;
+        return t;
+    }
+
     // 다시하기: 현재 씬을 다시 로드
     public void Restart()
     {

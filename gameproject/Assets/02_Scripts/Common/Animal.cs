@@ -5,7 +5,8 @@ using UnityEngine;
 public class Animal : MonoBehaviour
 {
     public enum State { Free, Fleeing, Caught, Returning }
-    private enum Mini { Timing, Mash }
+    private enum Mini { Timing, Mash, MovingZone }
+    public const int MiniGameCount = 3;
 
     [Header("배회(도망 전)")]
     [SerializeField] private float wanderSpeed = 1.5f;
@@ -131,23 +132,30 @@ public class Animal : MonoBehaviour
             chargeFill.localScale = new Vector3(Mathf.Clamp01(t), 1f, 1f);
     }
 
-    // 미니게임 시작(잡은 수가 많을수록 어렵게)
-    public void StartMiniGame(int caught)
+    // 미니게임 시작(type: 0 타이밍, 1 연타, 2 움직이는초록). 잡은 수가 많을수록 어렵게(완화됨).
+    public void StartMiniGame(int caught, int type)
     {
         if (CurrentState != State.Free) return;
         miniActive = true;
-        miniType = (Random.value < 0.5f) ? Mini.Timing : Mini.Mash;
+        miniType = (Mini)Mathf.Clamp(type, 0, MiniGameCount - 1);
 
-        if (miniType == Mini.Timing)
+        float speedMul = 1f + caught * 0.13f;
+        float zoneMul = Mathf.Clamp(1f - caught * 0.09f, 0.58f, 1f);
+        effMarkerSpeed = markerSpeed * speedMul;
+        effZoneHalf = zoneHalfWidth * zoneMul;
+
+        if (miniType == Mini.Timing || miniType == Mini.MovingZone)
         {
-            float speedMul = 1f + caught * 0.18f;
-            float zoneMul = Mathf.Clamp(1f - caught * 0.13f, 0.4f, 1f);
-            effMarkerSpeed = markerSpeed * speedMul;
-            effZoneHalf = zoneHalfWidth * zoneMul;
-            if (zoneTransform) zoneTransform.localScale = new Vector3(zoneMul, 1f, 1f);
+            if (zoneTransform)
+            {
+                zoneTransform.localScale = new Vector3(zoneMul, 1f, 1f);
+                zoneTransform.localPosition = new Vector3(0f, zoneTransform.localPosition.y, zoneTransform.localPosition.z);
+            }
+            if (marker)
+                marker.localPosition = new Vector3(0f, marker.localPosition.y, marker.localPosition.z);
             if (timingBar) timingBar.SetActive(true);
         }
-        else
+        else // Mash
         {
             int requiredTaps = 6 + caught;
             mashPerTap = 1f / requiredTaps;
@@ -178,6 +186,21 @@ public class Animal : MonoBehaviour
             }
             return 0;
         }
+        else if (miniType == Mini.MovingZone)
+        {
+            // 마커는 가운데 고정, 초록칸이 움직임 → 가운데 올 때 누르기
+            float t = Mathf.PingPong(Time.time * effMarkerSpeed * 2f, 2f) - 1f;
+            float zx = t * trackHalfWidth;
+            if (zoneTransform) zoneTransform.localPosition = new Vector3(zx, zoneTransform.localPosition.y, zoneTransform.localPosition.z);
+            if (pressed)
+            {
+                bool hit = Mathf.Abs(zx) <= effZoneHalf;
+                EndMini();
+                if (!hit) { Flee(playerPos); return 2; }
+                return 1;
+            }
+            return 0;
+        }
         else
         {
             mashTimer -= Time.deltaTime;
@@ -196,6 +219,9 @@ public class Animal : MonoBehaviour
         miniActive = false;
         if (timingBar) timingBar.SetActive(false);
         if (mashRoot) mashRoot.SetActive(false);
+        // 위치 원복(다음 게임 대비)
+        if (zoneTransform) zoneTransform.localPosition = new Vector3(0f, zoneTransform.localPosition.y, zoneTransform.localPosition.z);
+        if (marker) marker.localPosition = new Vector3(0f, marker.localPosition.y, marker.localPosition.z);
     }
 
     private void Flee(Vector3 from)

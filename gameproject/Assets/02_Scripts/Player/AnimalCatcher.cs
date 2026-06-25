@@ -115,11 +115,14 @@ public class AnimalCatcher : MonoBehaviour
 
             case Phase.Locked:
                 if (locked == null) { phase = Phase.Idle; break; }
-                if (!held) // 떼면 랜덤 미니게임 시작
+                if (!held) // 떼면 랜덤 미니게임 시작(연속 중복 없이)
                 {
                     locked.SetLockCharge(-1f);
                     int caught = ParkGameManager.Instance != null ? ParkGameManager.Instance.CaughtCount : 0;
-                    locked.StartMiniGame(caught);
+                    int type = ParkGameManager.Instance != null
+                        ? ParkGameManager.Instance.NextMiniGame(Animal.MiniGameCount)
+                        : Random.Range(0, Animal.MiniGameCount);
+                    locked.StartMiniGame(caught, type);
                     phase = Phase.Timing;
                 }
                 break;

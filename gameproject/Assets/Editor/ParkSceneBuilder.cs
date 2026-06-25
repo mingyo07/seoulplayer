@@ -181,12 +181,11 @@ public static class ParkSceneBuilder
             "· ← → (또는 A / D) 로 좌우 이동\n" +
             "· 동물 가까이서 Space 를 길게 눌러 충전 → 록온\n" +
             "· 떼면 미니게임이 랜덤으로 등장!\n" +
-            "   - 타이밍: 마커가 초록 구간일 때 Space\n" +
-            "   - 연타: Space 를 빠르게 눌러 게이지 채우기\n" +
+            "   타이밍 · 움직이는 초록칸 · 연타 (Space)\n" +
             "· 성공하면 따라오고, 실패하면 잠깐 도망가요\n" +
             "· 동물을 모을수록 미니게임이 어려워져요!\n\n" +
             "모든 동물을 모으면 클리어! (걸린 시간 기록)",
-            26, TextAlignmentOptions.TopLeft,
+            28, TextAlignmentOptions.TopLeft,
             new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0.5f, 0.5f), new Vector2(0, 10), new Vector2(840, 380), new Color(0.25f, 0.22f, 0.18f));
         // 시작 버튼(하단 고정)
         var startBtn = MakePrettyButton("StartButton", htCard.transform, round, "게임 시작",
