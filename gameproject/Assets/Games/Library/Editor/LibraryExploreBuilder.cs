@@ -60,19 +60,34 @@ public static class LibraryExploreBuilder
         {
             var inst = (GameObject)PrefabUtility.InstantiatePrefab(fbx);
             inst.name = "BookWall";
-            inst.transform.position = new Vector3(0f, 0f, 16f);
-            inst.transform.localScale = Vector3.one * 12f; // 도서관을 크게(플레이어보다 훨씬 크게). 더 크/작게는 인스펙터에서
             FixToURP(inst); // 재질을 URP로
-            // 상호작용 영역(모델 둘레 크게, 트리거라 안 막음)
-            var zone = new GameObject("InteractZone");
-            zone.transform.position = new Vector3(0f, 4f, 12f);
-            var bc = zone.AddComponent<BoxCollider>(); bc.isTrigger = true; bc.size = new Vector3(70f, 20f, 40f);
-            zone.AddComponent<InteractZone>();
+
+            // 모델 실제 크기를 측정해 "큰 도서관"으로 자동 스케일 + 바닥에 앉히고 앞쪽 배치
+            var rends = inst.GetComponentsInChildren<Renderer>();
+            if (rends.Length > 0)
+            {
+                Bounds b = rends[0].bounds;
+                for (int i = 1; i < rends.Length; i++) b.Encapsulate(rends[i].bounds);
+                float maxDim = Mathf.Max(b.size.x, Mathf.Max(b.size.y, b.size.z));
+                if (maxDim > 0.0001f) inst.transform.localScale *= (40f / maxDim); // 최대 치수 40유닛
+
+                b = rends[0].bounds;
+                for (int i = 1; i < rends.Length; i++) b.Encapsulate(rends[i].bounds);
+                inst.transform.position += new Vector3(-b.center.x, -b.min.y, 22f - b.center.z); // x중앙, 바닥 y0, 중심 z22
+
+                b = rends[0].bounds;
+                for (int i = 1; i < rends.Length; i++) b.Encapsulate(rends[i].bounds);
+                var zone = new GameObject("InteractZone");
+                zone.transform.position = b.center;
+                var bc = zone.AddComponent<BoxCollider>(); bc.isTrigger = true;
+                bc.size = b.size + new Vector3(10f, 10f, 10f);
+                zone.AddComponent<InteractZone>();
+            }
         }
 
         // 플레이어
         var player = new GameObject("Player");
-        player.transform.position = new Vector3(0f, 0f, 0f);
+        player.transform.position = new Vector3(0f, 0f, -12f); // 도서관에서 떨어져서 시작(탐험)
         var cc = player.AddComponent<CharacterController>();
         cc.center = new Vector3(0f, 1f, 0f); cc.height = 2f; cc.radius = 0.4f;
         var body = GameObject.CreatePrimitive(PrimitiveType.Capsule);
