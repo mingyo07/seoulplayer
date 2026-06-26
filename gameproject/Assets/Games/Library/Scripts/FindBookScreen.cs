@@ -32,7 +32,14 @@ public class FindBookScreen : MonoBehaviour
 
     [Header("난이도")]
     [SerializeField] private float timeLimit = 30f;      // 제한시간(초)
-    [SerializeField] private float wrongPenalty = 1.5f;  // 오답 시 시간 깎임(초)
+    [SerializeField] private float wrongPenalty = 2f;    // 오답 시 시간 깎임(초)
+    [SerializeField] private float correctBonus = 0.5f;  // 정답 시 시간 추가(초)
+
+    [Header("찾을 책 썸네일 박스(이 안에서 책 비율 유지)")]
+    [SerializeField] private float thumbBoxWidth = 170f;
+    [SerializeField] private float thumbBoxHeight = 240f;
+    [Tooltip("썸네일 표시 가로 비율. 1=실제 비율, 작을수록 가로를 좁게 표시(늘어짐 보정).")]
+    [SerializeField, Range(0.4f, 1f)] private float thumbWidthFactor = 0.8f;
 
     public bool IsOpen { get; private set; }
 
@@ -43,10 +50,10 @@ public class FindBookScreen : MonoBehaviour
     private float timeLeft;
     private bool playing;
 
-    private void Awake()
-    {
-        if (panel) panel.SetActive(false);
-    }
+    // ⚠️ Awake에서 panel.SetActive(false)를 하면 안 됨!
+    // panel == 이 컴포넌트가 붙은 FindScreen 자기 자신이라,
+    // Open()이 SetActive(true)로 켜는 순간(=첫 활성화) Awake가 즉시 돌면서
+    // 다시 꺼버려 화면이 안 뜬다. (빌더가 이미 꺼진 상태로 씬을 저장하므로 초기 숨김은 그쪽에서 보장)
 
     public void Open(LibraryInteract from)
     {
@@ -131,6 +138,34 @@ public class FindBookScreen : MonoBehaviour
         {
             targetThumb.texture = shelfImage.texture;
             targetThumb.uvRect = cellUVs[targetIndex];
+            FitThumbAspect();
+        }
+    }
+
+    // 책 한 칸의 실제 비율(가로/세로)에 맞춰 썸네일을 표시한다(찌그러짐 방지).
+    // AspectRatioFitter가 있으면 그것으로 강제(가장 확실), 없으면 sizeDelta로 직접 맞춤.
+    private void FitThumbAspect()
+    {
+        var tex = shelfImage.texture;
+        if (tex == null) return;
+        Rect uv = targetThumb.uvRect;
+        float cellW = uv.width * tex.width;
+        float cellH = uv.height * tex.height;
+        if (cellW <= 0f || cellH <= 0f) return;
+        float aspect = (cellW / cellH) * thumbWidthFactor;   // 표시 가로 비율(작을수록 좁게)
+
+        var fitter = targetThumb.GetComponent<AspectRatioFitter>();
+        if (fitter != null)
+        {
+            fitter.aspectMode = AspectRatioFitter.AspectMode.HeightControlsWidth;
+            fitter.aspectRatio = aspect;       // 높이 고정, 너비를 비율대로
+        }
+        else
+        {
+            float h = thumbBoxHeight;
+            float w = h * aspect;
+            if (w > thumbBoxWidth) { w = thumbBoxWidth; h = w / aspect; }
+            targetThumb.rectTransform.sizeDelta = new Vector2(w, h);
         }
     }
 
@@ -139,13 +174,21 @@ public class FindBookScreen : MonoBehaviour
         if (!playing) return;
         if (index == targetIndex)
         {
-            found++;            // 점수 +1, 정답 책을 새로 바꿈
+            found++;                 // 점수 +1, 정답 책을 새로 바꿈
+            timeLeft += correctBonus; // 정답 = 시간 +1초
             NextTarget();
             UpdateInfo();
         }
         else
         {
-            timeLeft = Mathf.Max(0f, timeLeft - wrongPenalty); // 오답 = 시간 깎임
+            timeLeft -= wrongPenalty; // 오답 = 시간 -2초
+            if (timeLeft <= 0f)       // 패널티로 시간이 다 떨어지면 즉시 종료(음수 방지)
+            {
+                timeLeft = 0f;
+                UpdateInfo();
+                EndGame();
+                return;
+            }
             StopAllCoroutines(); StartCoroutine(Flash());
             UpdateInfo();
         }
@@ -159,11 +202,13 @@ public class FindBookScreen : MonoBehaviour
     private void UpdateInfo()
     {
         if (!infoText) return;
-        infoText.text = $"이 책을 찾으세요!   찾은 책 {found}권   ·   ⏱ {Mathf.CeilToInt(timeLeft)}초";
+        int sec = Mathf.CeilToInt(Mathf.Max(0f, timeLeft)); // 음수 표시 방지
+        infoText.text = $"이 책을 찾으세요!   찾은 책 {found}권   ·   ⏱ {sec}초";
     }
 
     private void EndGame()
     {
+        if (!playing) return; // 중복 종료 방지
         playing = false;
         if (resultPanel) resultPanel.SetActive(true);
         if (resultText) resultText.text = $"시간 종료!\n{found}권 찾았어요!";
