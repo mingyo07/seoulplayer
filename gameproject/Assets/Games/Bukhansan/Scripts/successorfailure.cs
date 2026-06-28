@@ -30,7 +30,7 @@ public class successorfailure : MonoBehaviour
 
         if (gameTimer != null)
         {
-            gameTimer.StartTimer();
+            //gameTimer.StartTimer();
         }
     }
 
