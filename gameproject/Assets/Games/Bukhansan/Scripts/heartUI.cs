@@ -4,9 +4,12 @@ using System.Collections;
 
 public class PlayerHP : MonoBehaviour
 {
-    public Image[] hearts;
-    public int hp = 4;
+    [Header("하트 UI 설정")]
+    public Image[] hearts;        // 하트 이미지 배열
+    public GameObject heartsPanel; // (선택사항) 게임오버 시 하트 UI 전체를 숨기고 싶다면 부모 오브젝트 연결
 
+    [Header("체력 설정")]
+    public int hp = 3;
     public bool isInvincible = false;
 
     void Start()
@@ -14,9 +17,10 @@ public class PlayerHP : MonoBehaviour
         UpdateHearts();
     }
 
+    // 외부(돌멩이 등)에서 데미지를 줄 때 호출하는 함수
     public void TakeDamage(int damage = 1)
     {
-        if (isInvincible) return;
+        if (isInvincible || hp <= 0) return;
 
         hp -= damage;
 
@@ -34,6 +38,7 @@ public class PlayerHP : MonoBehaviour
         StartCoroutine(InvincibilityCoroutine());
     }
 
+    // 무적 상태 코루틴
     IEnumerator InvincibilityCoroutine()
     {
         isInvincible = true;
@@ -41,19 +46,30 @@ public class PlayerHP : MonoBehaviour
         isInvincible = false;
     }
 
+    // 하트 개수 갱신 UI
     void UpdateHearts()
     {
         for (int i = 0; i < hearts.Length; i++)
         {
-            hearts[i].enabled = i < hp;
+            if (hearts[i] != null)
+            {
+                hearts[i].enabled = i < hp;
+            }
         }
     }
 
+    // 체력이 0이 되었을 때 호출
     void GameOver()
     {
-        Debug.Log("게임 오버");
+        Debug.Log("💀 게임 오버 - 플레이어 사망");
 
-        Time.timeScale = 0f; // 게임 정지
-        // 여기 나중에 UI 넣으면 됨 (GameOver Panel 등)
+        // 1. 게임 내 시간(물리 연산, 오브젝트 움직임 등) 정지
+        Time.timeScale = 0f; 
+
+        // 2. (선택사항) 하트 전체 판넬 숨기기
+        if (heartsPanel != null)
+        {
+            heartsPanel.SetActive(false);
+        }
     }
 }

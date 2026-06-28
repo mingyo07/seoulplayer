@@ -10,7 +10,7 @@ public class bukhansanmaincharacter : MonoBehaviour
     if (collision.gameObject.CompareTag("Stone"))
     {
         playerHP.TakeDamage(1);
-        //Destroy(collision.gameObject);
+        Destroy(collision.gameObject);
     }
     }
     [Header("이동 속도 설정")]
